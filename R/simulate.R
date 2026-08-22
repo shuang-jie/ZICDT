@@ -47,7 +47,13 @@ zicdt_simulate <- function(true_G, d = 50, n = 100, omega1 = 0.95,
   omega0 <- 1 - omega1
   # topological order so parents are simulated before children
   ord <- topo_order(true_G)
-  eta <- lapply(seq_len(p), function(j) as.numeric(rdirichlet_rows(1, rep(1 / d[j], d[j]))))
+  # baseline eta: root nodes are drawn flat, Dir(1); non-root nodes Dir(1/d).
+  # (A spiky root would otherwise propagate through the tree and over-inflate zeros.)
+  is_root <- colSums(true_G != 0) == 0
+  eta <- lapply(seq_len(p), function(j) {
+    conc <- if (is_root[j]) rep(1, d[j]) else rep(1 / d[j], d[j])
+    as.numeric(rdirichlet_rows(1, conc))
+  })
   Mlist <- vector("list", p)
   data <- vector("list", p)
 
