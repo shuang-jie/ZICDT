@@ -1,0 +1,11 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+results_forests
+^.*\.o$
+^.*\.so$
+^\.github$
+^LICENSE\.md$
+^_pkgdown\.yml$
+^cran-comments\.md$
+^docs$
+^pkgdown$

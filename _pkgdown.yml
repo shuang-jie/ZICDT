@@ -1,0 +1,16 @@
+url: https://shuang-jie.github.io/ZICDT
+
+template:
+  bootstrap: 5
+
+reference:
+- title: Structure learning
+  desc: Learn a directed tree/forest over compositional nodes.
+  contents:
+  - zicdt_cv
+  - zicdt_fit
+  - zicdt_edges
+- title: Simulation
+  desc: Generate zero-inflated compositional data on a known tree.
+  contents:
+  - zicdt_simulate

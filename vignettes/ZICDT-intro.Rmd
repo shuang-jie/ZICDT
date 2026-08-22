@@ -1,0 +1,69 @@
+---
+title: "Getting started with ZICDT"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with ZICDT}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Overview
+
+`ZICDT` learns a **directed tree (or forest)** in which each node is an entire
+**zero-inflated composition** on the probability simplex. It scores candidate
+edges with a Kullback--Leibler divergence (finite on exact zeros), models each
+child's conditional mean as a mixture of a baseline and a parent-driven,
+column-stochastic transition map, fits edge parameters by EM (in C++), searches
+for the globally optimal spanning arborescence with the Chu--Liu/Edmonds
+algorithm, and selects the edge penalty by cross-validation.
+
+```{r}
+library(ZICDT)
+```
+
+## Simulate data on a known tree
+
+Each node is an `n x d_j` matrix whose rows are compositions. Here we build a
+5-node tree with edges `1->2->3` and `1->4->5`.
+
+```{r}
+G <- matrix(0, 5, 5)
+G[1, 2] <- 1; G[2, 3] <- 1; G[1, 4] <- 1; G[4, 5] <- 1
+
+sim <- zicdt_simulate(G, d = c(8, 10, 12, 9, 11), n = 100, seed = 7)
+lapply(sim$data, dim)          # one n x d_j matrix per node
+```
+
+## Fit at a fixed penalty
+
+`zicdt_fit()` learns the globally optimal structure for a given penalty `alpha`.
+Note the parameterization: `alpha` multiplies the KL fit, so **larger `alpha`
+yields a denser structure**.
+
+```{r}
+fit <- zicdt_fit(sim$data, alpha = 2)
+fit
+zicdt_edges(fit)
+```
+
+## Choose the penalty by cross-validation (main workflow)
+
+`zicdt_cv()` runs K-fold cross-validation over a grid of penalties, selects the
+one minimizing out-of-sample KL loss, and refits the final tree. This is the
+usual entry point.
+
+```{r}
+cvfit <- zicdt_cv(sim$data, alpha_grid = c(seq(0.1, 1, 0.1), 2, 5), K = 3)
+cvfit
+cvfit$alpha        # selected penalty
+head(cvfit$cv)     # per-penalty CV table
+```
+
+The learned directed tree is available as an adjacency matrix
+(`cvfit$adjacency`, with `adjacency[k, j] == 1` meaning edge `k -> j`), as a tidy
+edge list via `zicdt_edges(cvfit)`, and as an `igraph` object (`cvfit$graph`).
+The fitted edge transition matrices are in `cvfit$params`.
