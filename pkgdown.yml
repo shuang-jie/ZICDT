@@ -3,7 +3,7 @@ pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   ZICDT-intro: ZICDT-intro.html
-last_built: 2026-08-22T01:24Z
+last_built: 2026-08-22T18:45Z
 urls:
   reference: https://shuang-jie.github.io/ZICDT/reference
   article: https://shuang-jie.github.io/ZICDT/articles

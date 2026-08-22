@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ZICDT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -120,17 +120,17 @@ given penalty <code>alpha</code>. Note the parameterization:
 <span><span class="co">#&gt; ZICDT directed tree</span></span>
 <span><span class="co">#&gt;   nodes: 5  |  edges: 4  |  roots: 1</span></span>
 <span><span class="co">#&gt;   penalty (alpha): 2</span></span>
-<span><span class="co">#&gt;   score: 117.9108</span></span>
+<span><span class="co">#&gt;   score: 175.6170</span></span>
 <span><span class="co">#&gt;   edges:</span></span>
 <span><span class="co">#&gt;     1 -&gt; 2</span></span>
 <span><span class="co">#&gt;     2 -&gt; 3</span></span>
-<span><span class="co">#&gt;     3 -&gt; 4</span></span>
+<span><span class="co">#&gt;     1 -&gt; 4</span></span>
 <span><span class="co">#&gt;     4 -&gt; 5</span></span>
 <span><span class="fu"><a href="../reference/zicdt_edges.html">zicdt_edges</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   parent child</span></span>
 <span><span class="co">#&gt; 1      1     2</span></span>
 <span><span class="co">#&gt; 2      2     3</span></span>
-<span><span class="co">#&gt; 3      3     4</span></span>
+<span><span class="co">#&gt; 3      1     4</span></span>
 <span><span class="co">#&gt; 4      4     5</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -142,23 +142,25 @@ the final tree. This is the usual entry point.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cvfit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/zicdt_cv.html">zicdt_cv</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">data</span>, alpha_grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">1</span>, <span class="fl">0.1</span><span class="op">)</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">)</span>, K <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">cvfit</span></span>
-<span><span class="co">#&gt; ZICDT directed forest</span></span>
-<span><span class="co">#&gt;   nodes: 5  |  edges: 2  |  roots: 3</span></span>
-<span><span class="co">#&gt;   penalty (alpha): 0.5</span></span>
-<span><span class="co">#&gt;   score: 31.6120</span></span>
+<span><span class="co">#&gt; ZICDT directed tree</span></span>
+<span><span class="co">#&gt;   nodes: 5  |  edges: 4  |  roots: 1</span></span>
+<span><span class="co">#&gt;   penalty (alpha): 0.3</span></span>
+<span><span class="co">#&gt;   score: 29.7425</span></span>
 <span><span class="co">#&gt;   edges:</span></span>
+<span><span class="co">#&gt;     1 -&gt; 2</span></span>
 <span><span class="co">#&gt;     2 -&gt; 3</span></span>
+<span><span class="co">#&gt;     1 -&gt; 4</span></span>
 <span><span class="co">#&gt;     4 -&gt; 5</span></span>
 <span><span class="va">cvfit</span><span class="op">$</span><span class="va">alpha</span>        <span class="co"># selected penalty</span></span>
-<span><span class="co">#&gt; [1] 0.5</span></span>
+<span><span class="co">#&gt; [1] 0.3</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">cvfit</span><span class="op">$</span><span class="va">cv</span><span class="op">)</span>     <span class="co"># per-penalty CV table</span></span>
 <span><span class="co">#&gt;   alpha fold test_kl_loss num_edges</span></span>
-<span><span class="co">#&gt; 1   0.1    1     26.52684         0</span></span>
-<span><span class="co">#&gt; 2   0.2    1     26.52684         0</span></span>
-<span><span class="co">#&gt; 3   0.3    1     25.19383         1</span></span>
-<span><span class="co">#&gt; 4   0.4    1     25.19383         1</span></span>
-<span><span class="co">#&gt; 5   0.5    1     24.37119         2</span></span>
-<span><span class="co">#&gt; 6   0.6    1     24.37119         2</span></span></code></pre></div>
+<span><span class="co">#&gt; 1   0.1    1     40.41311         0</span></span>
+<span><span class="co">#&gt; 2   0.2    1     34.14181         2</span></span>
+<span><span class="co">#&gt; 3   0.3    1     31.58412         4</span></span>
+<span><span class="co">#&gt; 4   0.4    1     31.58412         4</span></span>
+<span><span class="co">#&gt; 5   0.5    1     31.58412         4</span></span>
+<span><span class="co">#&gt; 6   0.6    1     31.58412         4</span></span></code></pre></div>
 <p>The learned directed tree is available as an adjacency matrix
 (<code>cvfit$adjacency</code>, with <code>adjacency[k, j] == 1</code>
 meaning edge <code>k -&gt; j</code>), as a tidy edge list via

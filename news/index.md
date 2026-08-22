@@ -1,5 +1,11 @@
 # Changelog
 
+## ZICDT 0.1.1
+
+- zicdt_simulate(): draw root-node baselines from Dir(1) (non-root from
+  Dir(1/d)), matching the paper generator. Fixes over-inflated zeros
+  (~49%) that had collapsed structure recovery on simulated data.
+
 ## ZICDT 0.1.0
 
 - Initial release.

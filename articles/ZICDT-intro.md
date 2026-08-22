@@ -58,17 +58,17 @@ fit
 #> ZICDT directed tree
 #>   nodes: 5  |  edges: 4  |  roots: 1
 #>   penalty (alpha): 2
-#>   score: 117.9108
+#>   score: 175.6170
 #>   edges:
 #>     1 -> 2
 #>     2 -> 3
-#>     3 -> 4
+#>     1 -> 4
 #>     4 -> 5
 zicdt_edges(fit)
 #>   parent child
 #> 1      1     2
 #> 2      2     3
-#> 3      3     4
+#> 3      1     4
 #> 4      4     5
 ```
 
@@ -83,23 +83,25 @@ usual entry point.
 
 cvfit <- zicdt_cv(sim$data, alpha_grid = c(seq(0.1, 1, 0.1), 2, 5), K = 3)
 cvfit
-#> ZICDT directed forest
-#>   nodes: 5  |  edges: 2  |  roots: 3
-#>   penalty (alpha): 0.5
-#>   score: 31.6120
+#> ZICDT directed tree
+#>   nodes: 5  |  edges: 4  |  roots: 1
+#>   penalty (alpha): 0.3
+#>   score: 29.7425
 #>   edges:
+#>     1 -> 2
 #>     2 -> 3
+#>     1 -> 4
 #>     4 -> 5
 cvfit$alpha        # selected penalty
-#> [1] 0.5
+#> [1] 0.3
 head(cvfit$cv)     # per-penalty CV table
 #>   alpha fold test_kl_loss num_edges
-#> 1   0.1    1     26.52684         0
-#> 2   0.2    1     26.52684         0
-#> 3   0.3    1     25.19383         1
-#> 4   0.4    1     25.19383         1
-#> 5   0.5    1     24.37119         2
-#> 6   0.6    1     24.37119         2
+#> 1   0.1    1     40.41311         0
+#> 2   0.2    1     34.14181         2
+#> 3   0.3    1     31.58412         4
+#> 4   0.4    1     31.58412         4
+#> 5   0.5    1     31.58412         4
+#> 6   0.6    1     31.58412         4
 ```
 
 The learned directed tree is available as an adjacency matrix
