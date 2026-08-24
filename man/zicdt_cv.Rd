@@ -11,6 +11,7 @@ zicdt_cv(
   em_max_iter = 20000,
   em_eps = 1e-08,
   use_parallel = FALSE,
+  seed = NULL,
   verbose = FALSE
 )
 }
@@ -26,6 +27,11 @@ default grid \code{c(seq(0.01,0.09,0.01), seq(0.1,1,0.1))} is used.}
 
 \item{use_parallel}{Parallelize folds (default \code{FALSE}; sequential is the
 portable, package-safe path).}
+
+\item{seed}{Optional integer. If supplied, the cross-validation fold split
+(the only stochastic step; edge EM fitting is deterministic) is seeded so
+the result is exactly reproducible. Pass a per-replicate seed to make a
+whole simulation study reproducible, including under parallel execution.}
 
 \item{verbose}{If \code{FALSE} (default), suppress the engine's console output.}
 }

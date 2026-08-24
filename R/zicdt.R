@@ -52,6 +52,10 @@ zicdt_fit <- function(data, alpha, penalty_rate = 1,
 #' @param em_max_iter,em_eps EM iteration cap and convergence tolerance.
 #' @param use_parallel Parallelize folds (default \code{FALSE}; sequential is the
 #'   portable, package-safe path).
+#' @param seed Optional integer. If supplied, the cross-validation fold split
+#'   (the only stochastic step; edge EM fitting is deterministic) is seeded so
+#'   the result is exactly reproducible. Pass a per-replicate seed to make a
+#'   whole simulation study reproducible, including under parallel execution.
 #' @param verbose If \code{FALSE} (default), suppress the engine's console output.
 #' @return An object of class \code{"zicdt"} as in \code{\link{zicdt_fit}}, with
 #'   additional elements \code{cv} (the per-penalty CV table) and \code{params}
@@ -59,8 +63,9 @@ zicdt_fit <- function(data, alpha, penalty_rate = 1,
 #' @export
 zicdt_cv <- function(data, alpha_grid = NULL, K = 5,
                      em_max_iter = 20000, em_eps = 1e-8,
-                     use_parallel = FALSE, verbose = FALSE) {
+                     use_parallel = FALSE, seed = NULL, verbose = FALSE) {
   stopifnot(is.list(data), length(data) >= 2)
+  if (!is.null(seed)) set.seed(seed)
   run <- function() cross_validate_alpha_complete(
     data_list = data, alpha_grid = alpha_grid, K = K,
     use_parallel = use_parallel, em_max_iter = em_max_iter, em_eps = em_eps)

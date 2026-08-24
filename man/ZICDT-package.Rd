@@ -15,8 +15,8 @@ tree/forest via Chu-Liu/Edmonds. The edge penalty is chosen by cross-validation.
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/sz333024/ZICDT}
-  \item Report bugs at \url{https://github.com/sz333024/ZICDT/issues}
+  \item \url{https://github.com/shuang-jie/ZICDT}
+  \item Report bugs at \url{https://github.com/shuang-jie/ZICDT/issues}
 }
 
 }
