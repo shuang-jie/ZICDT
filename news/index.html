@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ZICDT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,10 @@
       <small>Source: <a href="https://github.com/shuang-jie/ZICDT/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.2" id="zicdt-012">ZICDT 0.1.2<a class="anchor" aria-label="anchor" href="#zicdt-012"></a></h2>
+<ul><li>zicdt_cv() gains a <code>seed</code> argument that seeds the cross-validation fold split (the only stochastic step; EM fitting is deterministic), making results exactly reproducible, including under parallel execution.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.1" id="zicdt-011">ZICDT 0.1.1<a class="anchor" aria-label="anchor" href="#zicdt-011"></a></h2>
 <ul><li>zicdt_simulate(): draw root-node baselines from Dir(1) (non-root from Dir(1/d)), matching the paper generator. Fixes over-inflated zeros (~49%) that had collapsed structure recovery on simulated data.</li>

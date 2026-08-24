@@ -1,5 +1,12 @@
 # Changelog
 
+## ZICDT 0.1.2
+
+- zicdt_cv() gains a `seed` argument that seeds the cross-validation
+  fold split (the only stochastic step; EM fitting is deterministic),
+  making results exactly reproducible, including under parallel
+  execution.
+
 ## ZICDT 0.1.1
 
 - zicdt_simulate(): draw root-node baselines from Dir(1) (non-root from

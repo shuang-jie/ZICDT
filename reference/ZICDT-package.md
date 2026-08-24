@@ -11,9 +11,9 @@ The edge penalty is chosen by cross-validation.
 
 Useful links:
 
-- <https://github.com/sz333024/ZICDT>
+- <https://github.com/shuang-jie/ZICDT>
 
-- Report bugs at <https://github.com/sz333024/ZICDT/issues>
+- Report bugs at <https://github.com/shuang-jie/ZICDT/issues>
 
 ## Author
 

@@ -15,6 +15,7 @@ zicdt_cv(
   em_max_iter = 20000,
   em_eps = 1e-08,
   use_parallel = FALSE,
+  seed = NULL,
   verbose = FALSE
 )
 ```
@@ -43,6 +44,14 @@ zicdt_cv(
 
   Parallelize folds (default `FALSE`; sequential is the portable,
   package-safe path).
+
+- seed:
+
+  Optional integer. If supplied, the cross-validation fold split (the
+  only stochastic step; edge EM fitting is deterministic) is seeded so
+  the result is exactly reproducible. Pass a per-replicate seed to make
+  a whole simulation study reproducible, including under parallel
+  execution.
 
 - verbose:
 

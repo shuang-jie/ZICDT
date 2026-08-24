@@ -11,7 +11,7 @@ refits the final directed tree/forest on all data at the selected penalty."></he
 
     <a class="navbar-brand me-2" href="../index.html">ZICDT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,6 +56,7 @@ refits the final directed tree/forest on all data at the selected penalty.</p>
 <span>  em_max_iter <span class="op">=</span> <span class="fl">20000</span>,</span>
 <span>  em_eps <span class="op">=</span> <span class="fl">1e-08</span>,</span>
 <span>  use_parallel <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -84,6 +85,13 @@ default grid <code>c(seq(0.01,0.09,0.01), seq(0.1,1,0.1))</code> is used.</p></d
 <dt id="arg-use-parallel">use_parallel<a class="anchor" aria-label="anchor" href="#arg-use-parallel"></a></dt>
 <dd><p>Parallelize folds (default <code>FALSE</code>; sequential is the
 portable, package-safe path).</p></dd>
+
+
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
+<dd><p>Optional integer. If supplied, the cross-validation fold split
+(the only stochastic step; edge EM fitting is deterministic) is seeded so
+the result is exactly reproducible. Pass a per-replicate seed to make a
+whole simulation study reproducible, including under parallel execution.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
