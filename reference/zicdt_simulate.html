@@ -13,7 +13,7 @@ column-stochastic transition matrix \(M_{jk}\); observations are drawn as
 
     <a class="navbar-brand me-2" href="../index.html">ZICDT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,6 +59,7 @@ column-stochastic transition matrix \(M_{jk}\); observations are drawn as
 <span>  omega1 <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  precision <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  zero_inflate <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  no_dead_cols <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -91,9 +92,20 @@ dimension, or a single integer used for all nodes.</p></dd>
 
 
 <dt id="arg-zero-inflate">zero_inflate<a class="anchor" aria-label="anchor" href="#arg-zero-inflate"></a></dt>
-<dd><p>Optional fraction in [0, 1); if &gt; 0, that fraction of
-entries in each row is randomly set to exactly zero and the row renormalized,
-to mimic zero inflation.</p></dd>
+<dd><p>Optional target zero fraction in [0, 1). If &gt; 0, each
+observation is forced to have exactly <code>floor(zero_inflate * d_j)</code> zero
+components: the smallest-abundance entries (including any that were already
+zero from Dirichlet underflow) become structural zeros and the row is
+renormalized. This yields a zero-inflated Dirichlet whose realized zero rate
+equals <code>zero_inflate</code> (provided it exceeds the small natural rate), with
+zeros occurring at low abundance as in real compositional data.</p></dd>
+
+
+<dt id="arg-no-dead-cols">no_dead_cols<a class="anchor" aria-label="anchor" href="#arg-no-dead-cols"></a></dt>
+<dd><p>Logical; if <code>TRUE</code>, after zero-injection any column
+(component) that became zero in every observation is rescued by restoring its
+largest original value in one subject, guaranteeing every component is present
+in at least one observation (as in real data). Default <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
