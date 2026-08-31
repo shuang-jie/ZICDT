@@ -11,6 +11,7 @@ zicdt_simulate(
   omega1 = 0.95,
   precision = 20,
   zero_inflate = 0,
+  no_dead_cols = FALSE,
   seed = NULL
 )
 }
@@ -28,9 +29,18 @@ dimension, or a single integer used for all nodes.}
 
 \item{precision}{Dirichlet precision \eqn{\kappa} controlling dispersion.}
 
-\item{zero_inflate}{Optional fraction in [0, 1); if > 0, that fraction of
-entries in each row is randomly set to exactly zero and the row renormalized,
-to mimic zero inflation.}
+\item{zero_inflate}{Optional target zero fraction in [0, 1). If > 0, each
+observation is forced to have exactly \code{floor(zero_inflate * d_j)} zero
+components: the smallest-abundance entries (including any that were already
+zero from Dirichlet underflow) become structural zeros and the row is
+renormalized. This yields a zero-inflated Dirichlet whose realized zero rate
+equals \code{zero_inflate} (provided it exceeds the small natural rate), with
+zeros occurring at low abundance as in real compositional data.}
+
+\item{no_dead_cols}{Logical; if \code{TRUE}, after zero-injection any column
+(component) that became zero in every observation is rescued by restoring its
+largest original value in one subject, guaranteeing every component is present
+in at least one observation (as in real data). Default \code{FALSE}.}
 
 \item{seed}{Optional integer seed.}
 }

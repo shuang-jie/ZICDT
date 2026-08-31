@@ -29,15 +29,24 @@ rdirichlet_rows <- function(n, alpha) {
 #' @param n Number of samples (subjects).
 #' @param omega1 Parental-influence weight (\eqn{\omega_1}); \eqn{\omega_0 = 1 - \omega_1}.
 #' @param precision Dirichlet precision \eqn{\kappa} controlling dispersion.
-#' @param zero_inflate Optional fraction in [0, 1); if > 0, that fraction of
-#'   entries in each row is randomly set to exactly zero and the row renormalized,
-#'   to mimic zero inflation.
+#' @param zero_inflate Optional target zero fraction in [0, 1). If > 0, each
+#'   observation is forced to have exactly \code{floor(zero_inflate * d_j)} zero
+#'   components: the smallest-abundance entries (including any that were already
+#'   zero from Dirichlet underflow) become structural zeros and the row is
+#'   renormalized. This yields a zero-inflated Dirichlet whose realized zero rate
+#'   equals \code{zero_inflate} (provided it exceeds the small natural rate), with
+#'   zeros occurring at low abundance as in real compositional data.
+#' @param no_dead_cols Logical; if \code{TRUE}, after zero-injection any column
+#'   (component) that became zero in every observation is rescued by restoring its
+#'   largest original value in one subject, guaranteeing every component is present
+#'   in at least one observation (as in real data). Default \code{FALSE}.
 #' @param seed Optional integer seed.
 #' @return A list with \code{data} (a length-\code{p} list of \code{n x d_j}
 #'   matrices) and \code{true_G} (the adjacency matrix used).
 #' @export
 zicdt_simulate <- function(true_G, d = 50, n = 100, omega1 = 0.95,
-                           precision = 20, zero_inflate = 0, seed = NULL) {
+                           precision = 20, zero_inflate = 0, no_dead_cols = FALSE,
+                           seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
   p <- nrow(true_G)
   if (length(d) == 1L) d <- rep(as.integer(d), p)
@@ -73,7 +82,7 @@ zicdt_simulate <- function(true_G, d = 50, n = 100, omega1 = 0.95,
     }
     xhat <- xhat / rowSums(xhat)
     X <- t(apply(xhat, 1, function(m) as.numeric(rdirichlet_rows(1, precision * m))))
-    if (zero_inflate > 0) X <- inject_zeros(X, zero_inflate)
+    if (zero_inflate > 0) X <- inject_zeros(X, zero_inflate, no_dead_cols)
     data[[j]] <- X
   }
   names(data) <- as.character(seq_len(p))
@@ -94,18 +103,40 @@ topo_order <- function(G) {
   ord
 }
 
-# Randomly set a fraction of entries per row to exactly zero, then renormalize.
-inject_zeros <- function(X, rate) {
+# Force each row's total zero count to floor(rate * d) by turning the
+# smallest-abundance entries (plus any already-zero from Dirichlet underflow)
+# into structural zeros, then renormalize. The realized zero rate therefore
+# equals `rate` whenever `rate` exceeds the natural underflow rate. If
+# `no_dead_cols` is TRUE, any column zeroed in every row is rescued by restoring
+# its largest original value in one subject, so every component stays present.
+inject_zeros <- function(X, rate, no_dead_cols = FALSE) {
   X <- as.matrix(X)
+  d <- ncol(X)
+  target <- floor(rate * d)
+  X0 <- X                                        # original (pre-zeroing) draw
   for (i in seq_len(nrow(X))) {
-    d <- ncol(X)
-    k <- floor(rate * d)
-    if (k > 0) {
-      idx <- sample.int(d, k)
-      X[i, idx] <- 0
-      s <- sum(X[i, ])
-      if (s > 0) X[i, ] <- X[i, ] / s
+    xi <- X[i, ]
+    need <- target - sum(xi == 0)
+    if (need > 0) {
+      pos <- which(xi > 0)
+      ord <- pos[order(xi[pos])]                 # ascending abundance
+      xi[ord[seq_len(min(need, length(ord)))]] <- 0
+    }
+    X[i, ] <- xi
+  }
+  if (no_dead_cols) {
+    pos_min <- if (any(X0 > 0)) min(X0[X0 > 0]) else 1e-8
+    for (k in which(colSums(X != 0) == 0)) {
+      i <- which.max(X0[, k])                    # subject with largest original value
+      val <- X0[i, k]
+      if (val <= 0) {                            # column underflowed to 0 in the draw too
+        val <- pos_min                           # inject the smallest observed positive mass
+        i <- which.max(rowSums(X0))              # into the highest-total subject
+      }
+      X[i, k] <- val                             # column now guaranteed non-empty
     }
   }
-  X
+  rs <- rowSums(X)
+  rs[rs == 0] <- 1
+  X / rs                                         # renormalize every row to sum 1
 }

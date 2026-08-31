@@ -1,7 +1,7 @@
 Package: ZICDT
 Type: Package
 Title: Structure Learning for Directed Trees with Zero-Inflated Compositional Nodes
-Version: 0.1.2
+Version: 0.1.4
 Authors@R: person("Shuangjie", "Zhang", email = "sz333024@gmail.com", role = c("aut", "cre"))
 Description: Learns directed tree (or forest) structures in which each node is an
     entire zero-inflated composition on the probability simplex. Uses a
