@@ -61,7 +61,7 @@ zicdt_fit <- function(data, alpha, penalty_rate = 1,
 #'   additional elements \code{cv} (the per-penalty CV table) and \code{params}
 #'   (the learned edge parameters of the final model).
 #' @export
-zicdt_cv <- function(data, alpha_grid = NULL, K = 5,
+zicdt_cv <- function(data, alpha_grid = NULL, K = 10,
                      em_max_iter = 20000, em_eps = 1e-8,
                      use_parallel = FALSE, seed = NULL, verbose = FALSE) {
   stopifnot(is.list(data), length(data) >= 2)
@@ -70,6 +70,20 @@ zicdt_cv <- function(data, alpha_grid = NULL, K = 5,
     data_list = data, alpha_grid = alpha_grid, K = K,
     use_parallel = use_parallel, em_max_iter = em_max_iter, em_eps = em_eps)
   res <- if (verbose) run() else { utils::capture.output(res <- run()); res }
+  # Candidate-edge EM convergence on the full data: precompute_node_results calls
+  # the same EMalgorithm_cpp used by the scorer, so em_iters here == the scorer's.
+  # (Adds one full-data candidate-fit pass; em_iters == em_max_iter means it hit the cap.)
+  emc <- tryCatch({
+    pnr <- precompute_node_results(data, em_max_iter = em_max_iter, em_eps = em_eps)
+    rows <- lapply(seq_along(pnr), function(j) {
+      nr <- pnr[[j]]; pk <- setdiff(names(nr), "0")
+      if (length(pk) == 0) return(NULL)
+      data.frame(child = j, parent = as.integer(pk),
+                 em_iters = vapply(pk, function(k) as.integer(nr[[k]]$em_iters), integer(1)),
+                 row.names = NULL)
+    })
+    do.call(rbind, rows)
+  }, error = function(e) NULL)
   out <- list(
     adjacency = res$final_structure,
     n_edges   = res$final_num_edges,
@@ -79,6 +93,12 @@ zicdt_cv <- function(data, alpha_grid = NULL, K = 5,
     score     = res$final_score,
     alpha     = res$alpha_selection$optimal_alpha,
     cv        = res$cv_results,
+    cv_curve  = tryCatch(stats::aggregate(test_kl_loss ~ alpha, res$cv_results, mean),
+                         error = function(e) NULL),   # mean held-out KL loss per alpha
+    em_convergence = emc,                             # per (child,parent) actual EM iters
+    em_iters_max   = if (!is.null(emc)) max(emc$em_iters, na.rm = TRUE) else NA_integer_,
+    em_n_hitcap    = if (!is.null(emc)) sum(emc$em_iters >= em_max_iter, na.rm = TRUE) else NA_integer_,
+    em_max_iter    = em_max_iter,
     params    = res$final_learned_params,
     graph     = res$final_model$graph
   )

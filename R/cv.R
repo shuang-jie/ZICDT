@@ -1,7 +1,7 @@
 # Vendored from the paper code (BigoneScript.R), lines 1491-2028 (cross-validation + alpha selection).
 # Part of the ZICDT package. Internal engine; user API in zicdt.R.
 
-create_cv_folds <- function(data_list, K = 5) {
+create_cv_folds <- function(data_list, K = 10) {
   N <- nrow(data_list[[1]])  # Number of samples (same for all nodes)
   fold_ids <- sample(rep(1:K, length.out = N))
   return(fold_ids)
@@ -76,6 +76,7 @@ precompute_node_results <- function(data_list,
       loss_parent <- as.numeric(em_result$loss)
       node_results[[as.character(parent_idx)]] <- list(
         loss = loss_parent,
+        em_iters = length(em_result$loglik),   # actual EM iterations run (== em_max_iter means hit cap)
         params = list(
           type = "with_parents",
           parent = parent_idx,
@@ -192,7 +193,7 @@ evaluate_model_cv <- function(training_result, test_data_list, alpha) {
 # @return Data frame with CV results
 cross_validate_alpha <- function(data_list,
                                  alpha_grid,
-                                 K = 5,
+                                 K = 10,
                                  use_parallel = TRUE,
                                  n_cores = NULL,
                                  precompute_parallel = FALSE,
@@ -434,7 +435,7 @@ train_final_model <- function(data_list,
 # @return Complete CV results and final model
 cross_validate_alpha_complete <- function(data_list, 
                                           alpha_grid = NULL, 
-                                          K = 5, 
+                                          K = 10, 
                                           tie_breaking = TRUE,
                                           use_parallel = TRUE,
                                           n_cores = NULL,
@@ -444,7 +445,9 @@ cross_validate_alpha_complete <- function(data_list,
                                           em_eps = 1e-8) {
   # Default alpha grid if not provided
   if (is.null(alpha_grid)) {
-    alpha_grid <- c(seq(0.01, 0.09, by = 0.01), seq(0.1, 1.0, by = 0.1))
+    # Dense grid on (0, 2]: 2000 points, step 0.001. Reaching an interior optimum
+    # instead of clamping is cheap here because each alpha reuses the cached EM fits.
+    alpha_grid <- seq(0.001, 2, by = 0.001)
   }
   
   # Step 1: Cross-validation
