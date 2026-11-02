@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ZICDT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,19 @@
       <small>Source: <a href="https://github.com/shuang-jie/ZICDT/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.8" id="zicdt-018">ZICDT 0.1.8<a class="anchor" aria-label="anchor" href="#zicdt-018"></a></h2>
+<ul><li>No-parent (root) loss: the fitted mean <code>eta = colMeans(y)</code> is now floored at 1e-100 in <code>precompute_node_results()</code> and in the C++ <code>compute_node_marginal_cost</code>. A taxon whose only nonzero entries are subnormal (~1e-323, from Dirichlet underflow) had a mean of exactly 0, which made the no-parent loss infinite: the node could never be a root, and an edge into it was forced at every penalty. Results are unchanged whenever every taxon mean exceeds 1e-100.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.7" id="zicdt-017">ZICDT 0.1.7<a class="anchor" aria-label="anchor" href="#zicdt-017"></a></h2>
+<ul><li>EM: a starting <code>eta(r) &lt;= 1e-100</code> (not only <code>eta(r) == 0</code>) is replaced by a small positive value and renormalised. A taxon with only subnormal nonzero entries otherwise gave 0/0 = NaN in the first E-step, and the EM never converged.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.6" id="zicdt-016">ZICDT 0.1.6<a class="anchor" aria-label="anchor" href="#zicdt-016"></a></h2>
+<ul><li>EM: a child taxon that is zero in every sample (<code>eta(r) = 0</code> at the start) no longer produces NaN; such entries start at a small positive value. Results are unchanged on data without such a taxon.</li>
+<li>New internal <code>EMalgorithm_init_cpp()</code>: the same EM from a caller-supplied start (<code>w</code>, <code>eta</code>, <code>M</code>), for multi-start diagnostics.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.2" id="zicdt-012">ZICDT 0.1.2<a class="anchor" aria-label="anchor" href="#zicdt-012"></a></h2>
 <ul><li>zicdt_cv() gains a <code>seed</code> argument that seeds the cross-validation fold split (the only stochastic step; EM fitting is deterministic), making results exactly reproducible, including under parallel execution.</li>
