@@ -60,6 +60,23 @@ List EMalgorithm_cpp(const List& x,
     
     // Smart initialization: use empirical column means
     vec eta = mean(y, 0).t();  // Much better than uniform 1/q
+
+    // 0.1.6 FIX: a taxon that is exactly 0 in every sample gives eta(r) = 0. Every M column
+    // starts equal to eta, so p_ir = 0 for that taxon, and the first E-step evaluates
+    // gamma = 0/0 = NaN; the M-step then spreads NaN into w, eta and M permanently, the
+    // log-likelihood is NaN, the convergence test can never pass, and the fit runs to
+    // max_iter returning NaN. Replace exact zeros by eps (the same floor the M-step already
+    // uses) and renormalize. When no taxon is all-zero this block changes NOTHING, so the
+    // algorithm is bit-identical to 0.1.5 on such data.
+    {
+        bool has_zero = false;
+        // 0.1.7: also catch EFFECTIVELY-zero taxa. Dirichlet underflow can leave a taxon whose
+        // only nonzero entries are subnormal (~1e-322); eta(r) > 0 then, but p_ir still underflows
+        // to exactly 0 and the same 0/0 NaN occurs. Any eta(r) <= 1e-100 is floored. Data with no
+        // such taxon is untouched (bit-identical to 0.1.5/0.1.6).
+        for (int r = 0; r < q; r++) if (!(eta(r) > 1e-100)) { eta(r) = eps; has_zero = true; }
+        if (has_zero) eta /= arma::sum(eta);
+    }
     
     // Initialize M matrices with smart values (each column = eta for better starting point)
     std::vector<mat> M(J);
@@ -615,8 +632,9 @@ double compute_node_marginal_cost_cpp(int node_idx,
     } else {
         // Cache miss - compute
         if (parent_ids.empty()) {
-            // No parent: use column means
-            vec eta = mean(y, 0).t();
+            // No parent: use column means, floored at 1e-100 as in precompute_node_results (0.1.8): a taxon
+            // whose only nonzero entries are subnormal has mean exactly 0, which made this loss Inf.
+            vec eta = clamp(mean(y, 0).t(), 1e-100, datum::inf);
             
             // Calculate KL divergence loss
             node_loss = 0.0;
@@ -659,4 +677,220 @@ void clear_node_cache() {
 // [[Rcpp::export]]
 int get_cache_size() {
     return global_node_cache.size();
+}
+
+
+// ============================================================================
+// EMalgorithm_init_cpp  (added in 0.1.6, multi-start diagnostics)
+// ----------------------------------------------------------------------------
+// IDENTICAL to EMalgorithm_cpp -- same E-step, M-step, convergence test
+// (|ll - prev_ll| < 1e-6 after iter 500) and return value -- EXCEPT that the
+// starting values w, eta, M are supplied by the caller instead of the fixed
+// start (w = 1/(J+1), eta = child mean, every column of M = eta), which is the
+// degenerate M = eta 1' point. EMalgorithm_cpp itself is left untouched.
+// ============================================================================
+// [[Rcpp::export]]
+List EMalgorithm_init_cpp(const List& x,
+                     const arma::mat& y,
+                     int max_iter,
+                     double eps,
+                     const arma::vec& init_w,
+                     const arma::vec& init_eta,
+                     const List& init_M) {
+    
+    // Get dimensions
+    const int N = y.n_rows;    // Number of samples
+    const int q = y.n_cols;    // Number of categories in target
+    const int J = x.length();  // Number of parent nodes
+    
+    // Store parent matrices and dimensions for faster access
+    std::vector<mat> parent_data(J);
+    std::vector<int> p(J);  // Dimensions of parent nodes
+    for(int j = 0; j < J; j++) {
+        parent_data[j] = as<mat>(x[j]);
+        p[j] = parent_data[j].n_cols;
+    }
+    
+    // ---- CALLER-SUPPLIED INITIALIZATION (the only difference from EMalgorithm_cpp) ----
+    if ((int)init_w.n_elem != J + 1) Rcpp::stop("init_w must have length J+1");
+    if ((int)init_eta.n_elem != q)   Rcpp::stop("init_eta must have length q (child dimension)");
+    if (init_M.length() != J)        Rcpp::stop("init_M must be a list of J matrices");
+    vec w = init_w;
+    vec eta = init_eta;
+    std::vector<mat> M(J);
+    for(int j = 0; j < J; j++) {
+        M[j] = as<mat>(init_M[j]);
+        if ((int)M[j].n_rows != q || (int)M[j].n_cols != p[j])
+            Rcpp::stop("init_M[[j]] must be q x p_j");
+    }
+    
+    // Pre-allocate memory for E-step (large arrays - use std::vector for performance)
+    std::vector<double> gamma0(N * q);      // Global topic responsibility
+    std::vector<double> gammaJ(N * q * J);  // Store all parent responsibilities
+    std::vector<mat> pi(J);                 // Component probabilities
+    
+    // Initialize pi matrices
+    for(int j = 0; j < J; j++) {
+        pi[j] = mat(N * q, p[j]);
+    }
+    
+    // Storage for convergence tracking
+    std::vector<double> loglik(max_iter);
+    vec cov_contrib(J);  // Small temporary array
+    
+    // Main EM loop
+    double prev_ll = -1e300;  // Initialize to very small number
+    double loss = 0.0;
+    for(int iter = 0; iter < max_iter; iter++) {
+        // Reset matrices - use std::fill for better performance
+        std::fill(gamma0.begin(), gamma0.end(), 0.0);
+        std::fill(gammaJ.begin(), gammaJ.end(), 0.0);
+        
+        // Reset log-likelihood for this iteration
+        double ll = 0.0;
+        loss = 0.0;
+        
+        // E-Step and log-likelihood calculation
+        for(int i = 0; i < N; i++) {
+            const int row_offset = i * q;
+            for(int r = 0; r < q; r++) {
+                // Compute category probability p_ir
+                double p_ir = w(0) * eta(r);
+                
+                // Compute parent contributions
+                for(int j = 0; j < J; j++) {
+                    cov_contrib(j) = 0.0;
+                    const arma::mat& M_j = M[j];
+                    const arma::mat& x_j = parent_data[j];
+                    
+                    for(int c = 0; c < p[j]; c++) {
+                        cov_contrib(j) += x_j(i, c) * M_j(r, c);
+                    }
+                    p_ir += w(j + 1) * cov_contrib(j);
+                }
+                
+                // Add to log-likelihood
+                ll += y(i,r) * log(p_ir);
+                if(y(i,r) != 0) {
+                    loss += y(i,r) * (log(y(i,r)) - log(p_ir));
+                }
+                
+                // Compute responsibilities
+                gamma0[row_offset + r] = (w(0) * eta(r)) / p_ir;
+                
+                // Update parent responsibilities and component probabilities
+                for(int j = 0; j < J; j++) {
+                    const int j_offset = j * N * q;
+                    gammaJ[j_offset + row_offset + r] = (w(j + 1) * cov_contrib(j)) / p_ir;
+                    
+                    // Update component probabilities
+                    mat& pi_j = pi[j];
+                    const int base_idx = row_offset + r;
+                    
+                    if(cov_contrib(j) > eps) {
+                        const arma::mat& M_j = M[j];
+                        const arma::mat& x_j = parent_data[j];
+                        for(int c = 0; c < p[j]; c++) {
+                            pi_j(base_idx, c) = (x_j(i, c) * M_j(r, c)) / cov_contrib(j);
+                        }
+                    } else {
+                        const double inv_p = 1.0/p[j];
+                        for(int c = 0; c < p[j]; c++) {
+                            pi_j(base_idx, c) = inv_p;
+                        }
+                    }
+                }
+            }
+        }
+        
+        loglik[iter] = ll;  // Store log-likelihood for this iteration
+        
+        // Check convergence early (not just after max_iter/2)
+        if(iter > 500 && std::abs(ll - prev_ll) < 1e-6) {
+            loglik.resize(iter + 1);  // Trim unused space
+            break;
+        }
+        prev_ll = ll;
+        
+        // M-Step
+        // Update w
+        w.fill(eps);  // Reset with eps
+        
+        for(int i = 0; i < N; i++) {
+            const int row_offset = i * q;
+            for(int r = 0; r < q; r++) {
+                w(0) += y(i,r) * gamma0[row_offset + r];
+                for(int j = 0; j < J; j++) {
+                    const int j_offset = j * N * q;
+                    w(j + 1) += y(i,r) * gammaJ[j_offset + row_offset + r];
+                }
+            }
+        }
+        
+        // Normalize w
+        w /= N;
+        w /= arma::sum(w);
+        
+        // Update eta
+        eta.fill(eps);  // Reset with eps
+        
+        for(int r = 0; r < q; r++) {
+            for(int i = 0; i < N; i++) {
+                eta(r) += y(i,r) * gamma0[i * q + r];
+            }
+        }
+        eta /= arma::sum(eta);
+        
+        // Update M matrices
+        for(int j = 0; j < J; j++) {
+            mat& M_j = M[j];
+            mat M_new(q, p[j]);
+            M_new.fill(eps);
+            
+            // Compute new values
+            for(int r = 0; r < q; r++) {
+                for(int c = 0; c < p[j]; c++) {
+                    double sum = 0.0;
+                    const arma::mat& pi_j = pi[j];
+                    const int j_offset = j * N * q;
+                    
+                    for(int i = 0; i < N; i++) {
+                        const int row_offset = i * q;
+                        sum += y(i,r) * gammaJ[j_offset + row_offset + r] * pi_j(row_offset + r, c);
+                    }
+                    M_new(r, c) = sum + eps;
+                }
+            }
+            
+            // Column normalize with pre-computed inverse
+            for(int c = 0; c < p[j]; c++) {
+                double col_sum = 0.0;
+                for(int r = 0; r < q; r++) {
+                    col_sum += M_new(r, c);
+                }
+                const double col_sum_inv = 1.0/col_sum;
+                for(int r = 0; r < q; r++) {
+                    M_j(r, c) = M_new(r, c) * col_sum_inv;
+                }
+            }
+        }
+    }
+    
+    // Convert loglik vector to R object
+    NumericVector loglik_r(loglik.begin(), loglik.end());
+    
+    // Convert M matrices to List for return
+    List M_list(J);
+    for(int j = 0; j < J; j++) {
+        M_list[j] = M[j];
+    }
+    
+    // Return results (w and eta are already arma::vec, can be returned directly)
+    return List::create(
+        Named("w") = w,
+        Named("eta") = eta,
+        Named("M") = M_list,
+        Named("loglik") = loglik_r,
+        Named("loss") = loss
+    );
 }

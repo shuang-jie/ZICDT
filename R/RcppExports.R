@@ -29,3 +29,7 @@ get_cache_size <- function() {
     .Call(`_ZICDT_get_cache_size`)
 }
 
+EMalgorithm_init_cpp <- function(x, y, max_iter, eps, init_w, init_eta, init_M) {
+    .Call(`_ZICDT_EMalgorithm_init_cpp`, x, y, max_iter, eps, init_w, init_eta, init_M)
+}
+

@@ -106,6 +106,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// EMalgorithm_init_cpp
+List EMalgorithm_init_cpp(const List& x, const arma::mat& y, int max_iter, double eps, const arma::vec& init_w, const arma::vec& init_eta, const List& init_M);
+RcppExport SEXP _ZICDT_EMalgorithm_init_cpp(SEXP xSEXP, SEXP ySEXP, SEXP max_iterSEXP, SEXP epsSEXP, SEXP init_wSEXP, SEXP init_etaSEXP, SEXP init_MSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const List& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
+    Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type init_w(init_wSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type init_eta(init_etaSEXP);
+    Rcpp::traits::input_parameter< const List& >::type init_M(init_MSEXP);
+    rcpp_result_gen = Rcpp::wrap(EMalgorithm_init_cpp(x, y, max_iter, eps, init_w, init_eta, init_M));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ZICDT_EMalgorithm_cpp", (DL_FUNC) &_ZICDT_EMalgorithm_cpp, 4},
@@ -115,6 +132,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ZICDT_compute_node_marginal_cost_cpp", (DL_FUNC) &_ZICDT_compute_node_marginal_cost_cpp, 7},
     {"_ZICDT_clear_node_cache", (DL_FUNC) &_ZICDT_clear_node_cache, 0},
     {"_ZICDT_get_cache_size", (DL_FUNC) &_ZICDT_get_cache_size, 0},
+    {"_ZICDT_EMalgorithm_init_cpp", (DL_FUNC) &_ZICDT_EMalgorithm_init_cpp, 7},
     {NULL, NULL, 0}
 };
 

@@ -47,8 +47,9 @@ precompute_node_results <- function(data_list,
     node_matrix <- as.matrix(data_list[[node_idx]])
     node_results <- list()
     
-    # No parent case (super-root)
-    eta <- colMeans(node_matrix)
+    # No parent case (super-root). eta is floored at 1e-100: a taxon whose only nonzero entries are subnormal
+    # (~1e-323) has colMeans exactly 0, which made this loss Inf and barred the node from being a root (0.1.8).
+    eta <- pmax(colMeans(node_matrix), 1e-100)
     loss_no_parent <- 0.0
     for (i in seq_len(nrow(node_matrix))) {
       row_vals <- node_matrix[i, ]
