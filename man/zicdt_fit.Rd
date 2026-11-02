@@ -18,7 +18,7 @@ zicdt_fit(
 a composition (nonnegative, sums to 1). All matrices must share the same
 number of rows \code{n}.}
 
-\item{alpha}{Edge penalty (larger \code{alpha} -> sparser structure).}
+\item{alpha}{Weight on the KL loss relative to the per-edge penalty (larger \code{alpha} -> more edges; smaller -> sparser structure).}
 
 \item{penalty_rate}{Per-edge complexity penalty (default 1).}
 

@@ -10,7 +10,7 @@
 #' @param data A named list of \code{n x d_j} matrices, one per node; each row is
 #'   a composition (nonnegative, sums to 1). All matrices must share the same
 #'   number of rows \code{n}.
-#' @param alpha Edge penalty (larger \code{alpha} -> sparser structure).
+#' @param alpha Weight on the KL loss relative to the per-edge penalty (larger \code{alpha} -> more edges; smaller -> sparser structure).
 #' @param penalty_rate Per-edge complexity penalty (default 1).
 #' @param em_max_iter,em_eps EM iteration cap and convergence tolerance.
 #' @param verbose If \code{FALSE} (default), suppress the engine's console output.
@@ -47,8 +47,8 @@ zicdt_fit <- function(data, alpha, penalty_rate = 1,
 #'
 #' @param data A named list of \code{n x d_j} compositional matrices (see \code{\link{zicdt_fit}}).
 #' @param alpha_grid Numeric vector of candidate penalties. If \code{NULL}, a
-#'   default grid \code{c(seq(0.01,0.09,0.01), seq(0.1,1,0.1))} is used.
-#' @param K Number of cross-validation folds (default 5).
+#'   default grid \code{seq(0.001, 2, by = 0.001)} (2,000 values) is used.
+#' @param K Number of cross-validation folds (default 10).
 #' @param em_max_iter,em_eps EM iteration cap and convergence tolerance.
 #' @param use_parallel Parallelize folds (default \code{FALSE}; sequential is the
 #'   portable, package-safe path).

@@ -7,7 +7,7 @@
 zicdt_cv(
   data,
   alpha_grid = NULL,
-  K = 5,
+  K = 10,
   em_max_iter = 20000,
   em_eps = 1e-08,
   use_parallel = FALSE,
@@ -19,9 +19,9 @@ zicdt_cv(
 \item{data}{A named list of \code{n x d_j} compositional matrices (see \code{\link{zicdt_fit}}).}
 
 \item{alpha_grid}{Numeric vector of candidate penalties. If \code{NULL}, a
-default grid \code{c(seq(0.01,0.09,0.01), seq(0.1,1,0.1))} is used.}
+default grid \code{seq(0.001, 2, by = 0.001)} (2,000 values) is used.}
 
-\item{K}{Number of cross-validation folds (default 5).}
+\item{K}{Number of cross-validation folds (default 10).}
 
 \item{em_max_iter, em_eps}{EM iteration cap and convergence tolerance.}
 
