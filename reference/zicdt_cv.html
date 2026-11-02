@@ -52,7 +52,7 @@ refits the final directed tree/forest on all data at the selected penalty.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">zicdt_cv</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
 <span>  alpha_grid <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  K <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  K <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  em_max_iter <span class="op">=</span> <span class="fl">20000</span>,</span>
 <span>  em_eps <span class="op">=</span> <span class="fl">1e-08</span>,</span>
 <span>  use_parallel <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -71,11 +71,11 @@ refits the final directed tree/forest on all data at the selected penalty.</p>
 
 <dt id="arg-alpha-grid">alpha_grid<a class="anchor" aria-label="anchor" href="#arg-alpha-grid"></a></dt>
 <dd><p>Numeric vector of candidate penalties. If <code>NULL</code>, a
-default grid <code>c(seq(0.01,0.09,0.01), seq(0.1,1,0.1))</code> is used.</p></dd>
+default grid <code>seq(0.001, 2, by = 0.001)</code> (2,000 values) is used.</p></dd>
 
 
 <dt id="arg-k">K<a class="anchor" aria-label="anchor" href="#arg-k"></a></dt>
-<dd><p>Number of cross-validation folds (default 5).</p></dd>
+<dd><p>Number of cross-validation folds (default 10).</p></dd>
 
 
 <dt id="arg-em-max-iter-em-eps">em_max_iter, em_eps<a class="anchor" aria-label="anchor" href="#arg-em-max-iter-em-eps"></a></dt>

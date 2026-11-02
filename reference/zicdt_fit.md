@@ -27,7 +27,8 @@ zicdt_fit(
 
 - alpha:
 
-  Edge penalty (larger `alpha` -\> sparser structure).
+  Weight on the KL loss relative to the per-edge penalty (larger `alpha`
+  -\> more edges; smaller -\> sparser structure).
 
 - penalty_rate:
 

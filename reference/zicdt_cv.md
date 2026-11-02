@@ -11,7 +11,7 @@ selected penalty.
 zicdt_cv(
   data,
   alpha_grid = NULL,
-  K = 5,
+  K = 10,
   em_max_iter = 20000,
   em_eps = 1e-08,
   use_parallel = FALSE,
@@ -30,11 +30,11 @@ zicdt_cv(
 - alpha_grid:
 
   Numeric vector of candidate penalties. If `NULL`, a default grid
-  `c(seq(0.01,0.09,0.01), seq(0.1,1,0.1))` is used.
+  `seq(0.001, 2, by = 0.001)` (2,000 values) is used.
 
 - K:
 
-  Number of cross-validation folds (default 5).
+  Number of cross-validation folds (default 10).
 
 - em_max_iter, em_eps:
 
